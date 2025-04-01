@@ -1,31 +1,7 @@
 import { useState } from "react";
-
-const TURNOS = { X: "X", O: "O" };
-
-const Cuadrado = ({ children, isSelected, updateBorde, index }) => {
-  const className = `cuadrado ${isSelected ? "is-selected" : ""}`;
-
-  const handleClick = () => {
-    updateBorde(index);
-  };
-
-  return (
-    <div onClick={handleClick} className={className}>
-      {children}
-    </div>
-  );
-};
-
-const COMBO_GANADOR = [
-  [0, 1, 2],
-  [3, 4, 5],
-  [6, 7, 8],
-  [0, 3, 6],
-  [1, 4, 7],
-  [2, 5, 8],
-  [0, 4, 8],
-  [2, 4, 6],
-];
+import confetti from "canvas-confetti";
+import { Cuadrado } from "./components/Cuadrado";
+import { TURNOS, COMBO_GANADOR } from "./constantes";
 
 function App() {
   const [borde, setBorde] = useState(Array(9).fill(null));
@@ -46,6 +22,16 @@ function App() {
     return null;
   };
 
+  const resetiarJuego = () => {
+    setBorde(Array(9).fill(null));
+    setTurno(TURNOS.X);
+    setGanador(null);
+  };
+
+  const verificarJuegoTerminado = (nuevoBorde) => {
+    return nuevoBorde.every((cuadrado) => cuadrado !== null);
+  };
+
   const updateBorde = (index) => {
     if (borde[index] || ganador) return;
     const nuevoBorde = [...borde];
@@ -55,15 +41,17 @@ function App() {
     setTurno(nuevoTurno);
     const nuevoGanador = verificarGanador(nuevoBorde);
     if (nuevoGanador) {
+      confetti();
       setGanador(nuevoGanador);
-    }
+    } else if (verificarJuegoTerminado(nuevoBorde)) setGanador(false);
   };
 
   return (
     <main className="borde">
       <h1>Ta-Te-Ti</h1>
+      <button onClick={resetiarJuego}>Reanudar Partida</button>
       <section className="juego">
-        {borde.map((_, index) => {
+        {borde.map((cuadrado, index) => {
           return (
             <Cuadrado key={index} index={index} updateBorde={updateBorde}>
               {borde[index]}
@@ -76,6 +64,19 @@ function App() {
         <Cuadrado isSelected={turno === TURNOS.X}>{TURNOS.X}</Cuadrado>
         <Cuadrado isSelected={turno === TURNOS.O}>{TURNOS.O}</Cuadrado>
       </section>
+      {ganador !== null && (
+        <section className="ganador">
+          <div className="text">
+            <h2>{ganador === false ? "Empataron 🤝" : "🎉 Gano 🎉"}</h2>
+
+            <header className="gano">{ganador && <Cuadrado>{ganador}</Cuadrado>}</header>
+
+            <footer>
+              <button onClick={resetiarJuego}>Jugar de nuevo 🕹️</button>
+            </footer>
+          </div>
+        </section>
+      )}
     </main>
   );
 }
