@@ -1,4 +1,4 @@
-export const TURNOS = { X: "X", O: "O" };
+export const TURNOS = { X: "❌", O: "⚪" };
 
 export const COMBO_GANADOR = [
   [0, 1, 2],

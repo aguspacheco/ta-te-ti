@@ -1,35 +1,30 @@
 import { useState } from "react";
 import confetti from "canvas-confetti";
 import { Cuadrado } from "./components/Cuadrado";
-import { TURNOS, COMBO_GANADOR } from "./constantes";
+import { TURNOS } from "./constantes";
+import { verificarGanador, verificarJuegoTerminado } from "./logic/boarde";
+import { GanadorModal } from "./components/GanadorModal";
+import { guardarJuegoStorage, resetiarJuegoStorage } from "./logic/storage/index";
 
 function App() {
-  const [borde, setBorde] = useState(Array(9).fill(null));
-  const [turno, setTurno] = useState(TURNOS.X);
-  const [ganador, setGanador] = useState(null);
+  const [borde, setBorde] = useState(() => {
+    const bordeDesdeStorage = window.localStorage.getItem("borde");
+    if (bordeDesdeStorage) return JSON.parse(bordeDesdeStorage);
+    return Array(9).fill(null);
+  });
 
-  const verificarGanador = (bordeVerifica) => {
-    for (const combo of COMBO_GANADOR) {
-      const [a, b, c] = combo;
-      if (
-        bordeVerifica[a] &&
-        bordeVerifica[a] === bordeVerifica[b] &&
-        bordeVerifica[a] === bordeVerifica[c]
-      ) {
-        return bordeVerifica[a];
-      }
-    }
-    return null;
-  };
+  const [turno, setTurno] = useState(() => {
+    const turnoDesdeStorage = window.localStorage.getItem("turno");
+    return turnoDesdeStorage ?? TURNOS.X;
+  });
+
+  const [ganador, setGanador] = useState(null);
 
   const resetiarJuego = () => {
     setBorde(Array(9).fill(null));
     setTurno(TURNOS.X);
     setGanador(null);
-  };
-
-  const verificarJuegoTerminado = (nuevoBorde) => {
-    return nuevoBorde.every((cuadrado) => cuadrado !== null);
+    resetiarJuegoStorage();
   };
 
   const updateBorde = (index) => {
@@ -39,6 +34,7 @@ function App() {
     setBorde(nuevoBorde);
     const nuevoTurno = turno === TURNOS.X ? TURNOS.O : TURNOS.X;
     setTurno(nuevoTurno);
+    guardarJuegoStorage({ borde: nuevoBorde, turno: nuevoTurno });
     const nuevoGanador = verificarGanador(nuevoBorde);
     if (nuevoGanador) {
       confetti();
@@ -64,19 +60,8 @@ function App() {
         <Cuadrado isSelected={turno === TURNOS.X}>{TURNOS.X}</Cuadrado>
         <Cuadrado isSelected={turno === TURNOS.O}>{TURNOS.O}</Cuadrado>
       </section>
-      {ganador !== null && (
-        <section className="ganador">
-          <div className="text">
-            <h2>{ganador === false ? "Empataron 🤝" : "🎉 Gano 🎉"}</h2>
 
-            <header className="gano">{ganador && <Cuadrado>{ganador}</Cuadrado>}</header>
-
-            <footer>
-              <button onClick={resetiarJuego}>Jugar de nuevo 🕹️</button>
-            </footer>
-          </div>
-        </section>
-      )}
+      <GanadorModal resetiarJuego={resetiarJuego} ganador={ganador} />
     </main>
   );
 }
