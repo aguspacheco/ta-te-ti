@@ -8,7 +8,7 @@ Este es el clásico juego de ta-te-ti realizado con React
 
 <div>
 
-<img align="center" src="README/ta-ta-tu.gif"  width="700"/>
+<img align="center" src="README/ta-ta-ti.gif"  width="700"/>
 <br>
 <br>
 
